@@ -5,7 +5,7 @@ const validateForm = (req, res) => {
     .validate(formData)
     .catch((err) => {
       res.status(422).send();
-      console.log(err.errors);
+      console.log(err.errors); //hello world
     })
     .then((valid) => {
       if (valid) {
