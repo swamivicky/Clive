@@ -1,13 +1,8 @@
 import React from "react";
-//import Chat from "./Chat";
-//import { io } from "socket.io-client";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
-//const socket = io.connect("http://localhost:5000");
 import { formSchema } from "@whatsapp-clone/common";
 function Login() {
-  // const [showChat, setShowChat] = useState(true);
-  // const [mode, setMode] = useState("light");
   const navigate = useNavigate();
   const formik = useFormik({
     initialValues: { UserName: "", PassWord: "" },
@@ -33,7 +28,6 @@ function Login() {
         })
         .then((data) => {
           console.log(data);
-          // Redirect or perform any actions after successful login
         })
         .catch((err) => {
           console.error(err);

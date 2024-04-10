@@ -7,6 +7,7 @@ const Views = () => {
     <Routes>
       <Route path="/register" element={<SignUp />} />
       <Route path="*" element={<Login />} />
+      <Route path="/" element={<Login />} />
     </Routes>
   );
 };
