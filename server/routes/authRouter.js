@@ -26,6 +26,7 @@ router.post("/login", async (req, res) => {
     console.log("not good");
   }
 });
+
 router.post("/register", async (req, res) => {
   validateForm(req, res);
   const existingUser = await pool.query(

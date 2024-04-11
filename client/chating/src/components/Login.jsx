@@ -7,9 +7,9 @@ function Login() {
   const formik = useFormik({
     initialValues: { UserName: "", PassWord: "" },
     validationSchema: formSchema,
-    onSubmit: (values, actions) => {
+    onSubmit: (values) => {
       const vals = { ...values };
-      actions.resetForm();
+      formik.handleReset();
 
       // Adjust the URL to the correct endpoint for user login
       fetch("http://localhost:5000/auth/login", {
