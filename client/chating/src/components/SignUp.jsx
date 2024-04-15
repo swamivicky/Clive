@@ -22,6 +22,7 @@ function SignUp() {
         body: JSON.stringify(vals),
       })
         .then((res) => {
+          console.log(res);
           if (!res || !res.ok || res.status >= 400) {
             throw new Error("Failed to log in");
           }

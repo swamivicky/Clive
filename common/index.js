@@ -9,4 +9,5 @@ const formSchema = Yup.object({
     .min(6, "Password too short")
     .max(28, "Password too logn!"),
 });
-module.exports = { formSchema };
+// common/index.js
+export { formSchema } from "./formSchema";

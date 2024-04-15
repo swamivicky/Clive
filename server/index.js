@@ -1,31 +1,35 @@
 const express = require("express");
-const http = require("http"); // Moved http require statement up
+const http = require("http");
 const app = express();
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const helmet = require("helmet");
 const cors = require("cors");
+const session = require("express-session");
 const router = require("./routes/authRouter");
+
 require("dotenv").config();
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
 
 app.use(express.json());
 app.use(helmet());
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(
+  session({
+    secret: process.env.COOKIE_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.ENVIRONMENT === "production",
+      httpOnly: true,
+      sameSite: process.env.ENVIRONMENT === "production" ? "none" : "Lax",
+    },
+  })
+);
 app.use("/auth", router);
-
-// Moved session configuration before defining the io instance
-
-// Removed unnecessary cors middleware declaration
-// app.use(cors());
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Update this line to match your client's port
+    origin: "http://localhost:3000",
     credentials: true,
     methods: ["GET", "POST"],
   },
@@ -33,16 +37,13 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
-
   socket.on("send_message", (data) => {
     console.log(data);
     socket.to(data.room).emit("receive_message", data);
   });
-
   socket.on("join_room", (room) => {
     socket.join(room);
   });
-
   socket.on("disconnect", () => {
     console.log("User Disconnected", socket.id);
   });
