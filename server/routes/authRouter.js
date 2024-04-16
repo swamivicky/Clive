@@ -3,13 +3,14 @@ const router = express.Router();
 const validateForm = require("../controllers/validateform");
 const pool = require("../dataBase");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+//const bcrypt = require("bcrypt");
 const secretKey = "Clive0100100101000001";
 
-router.post("/register", async (req, res) => {
+router.post("/login", async (req, res) => {
   console.log(req.body);
   try {
     validateForm(req, res);
+    console.log(req.body);
     /*
     const existingUser = await pool.query(
       "SELECT username FROM users WHERE username=$1",
@@ -38,7 +39,7 @@ router.post("/register", async (req, res) => {
     res.status(500).json({ loggedIn: false, status: "Internal Server Error" });
   }
 });
-
+/*
 router.post("/login", async (req, res) => {
   try {
     validateForm(req, res);
@@ -68,6 +69,6 @@ router.post("/login", async (req, res) => {
     console.error("Error during registration:", error);
     res.status(500).json({ loggedIn: false, status: "Internal Server Error" });
   }
-});
+});*/
 
 module.exports = router;

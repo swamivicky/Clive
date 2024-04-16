@@ -1,0 +1,30 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "build",
+			"path": "client/chating",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build - client/chating",
+			"detail": "react-scripts build"
+		},
+		{
+			"type": "npm",
+			"script": "install",
+			"path": "client/chating",
+			"problemMatcher": [],
+			"label": "npm: install - client/chating",
+			"detail": "install dependencies from package"
+		},
+		{
+			"type": "npm",
+			"script": "start",
+			"path": "client/chating",
+			"problemMatcher": [],
+			"label": "npm: start - client/chating",
+			"detail": "react-scripts start"
+		}
+	]
+}

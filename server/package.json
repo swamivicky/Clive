@@ -1,7 +1,6 @@
 {
   "name": "@whatapp-clone/server",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.0", 
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -17,8 +16,10 @@
     "express-session": "^1.18.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "nodemon": "^3.0.2",
+    "nodemon": "^3.1.0",
     "pg": "^8.11.3",
     "socket.io": "^4.7.3"
-  }
+  },
+  "keywords": [],
+  "description": ""
 }
