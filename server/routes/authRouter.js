@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 //const bcrypt = require("bcrypt");
 const secretKey = "Clive0100100101000001";
 
-router.post("/login", async (req, res) => {
+router.post("/register", async (req, res) => {
   console.log(req.body);
   try {
     validateForm(req, res);
@@ -34,6 +34,7 @@ router.post("/login", async (req, res) => {
       sameSite: "strict",
     });
     console.log("Cookie set with JWT token");
+  
   } catch (error) {
     console.error("Error during registration:", error);
     res.status(500).json({ loggedIn: false, status: "Internal Server Error" });

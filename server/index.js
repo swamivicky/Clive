@@ -26,7 +26,6 @@ app.use(
   })
 );
 app.use("/auth", router);
-
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -48,7 +47,7 @@ io.on("connection", (socket) => {
     console.log("User Disconnected", socket.id);
   });
 });
-
-server.listen(5000, () => {
-  console.log("Server running on port 5000");
+const port = 5001;
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });

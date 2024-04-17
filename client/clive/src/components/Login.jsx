@@ -10,7 +10,7 @@ function Login() {
     onSubmit: (values) => {
       const vals = { ...values };
       formik.handleReset();
-
+console.log(vals);
       // Adjust the URL to the correct endpoint for user login
       fetch("http://localhost:5000/auth/login", {
         method: "POST",

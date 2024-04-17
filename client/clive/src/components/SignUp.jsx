@@ -11,9 +11,9 @@ function SignUp() {
     onSubmit: (values, actions) => {
       const vals = { ...values };
       actions.resetForm();
-
+console.log(vals);
       // Adjust the URL to the correct endpoint for user login
-      fetch("http://localhost:5000/auth/register", {
+      fetch("http://localhost:5001/auth/register", {
         method: "POST",
         credentials: "include",
         headers: {
