@@ -1,5 +1,5 @@
 import React from "react";
-import { formSchema } from "@whatsapp-clone/common";
+import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 
@@ -7,7 +7,17 @@ function SignUp() {
   const navigate = useNavigate();
   const formik = useFormik({
     initialValues: { UserName: "", PassWord: "" },
-    validationSchema: formSchema,
+    validationSchema:Yup.object({
+      UserName: Yup.string()
+        .required("UserName required")
+        .min(6, "Username too short")
+        .max(28, "Username too long"),
+      PassWord: Yup.string()
+        .required("Password required")
+        .min(6, "Password too short")
+        .max(28, "Password too long"),
+    })
+,    
     onSubmit: (values, actions) => {
       const vals = { ...values };
       actions.resetForm();
@@ -30,6 +40,7 @@ console.log(vals);
         })
         .then((data) => {
           console.log(data);
+          navigate("/login");
         })
         .catch((err) => {
           console.error(err);
@@ -71,7 +82,7 @@ console.log(vals);
                 Create Account
               </button>
               <button className="LPageButton" onClick={() => navigate("*")}>
-                Back
+                LogIn
               </button>
             </div>
           </form>

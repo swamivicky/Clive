@@ -1,38 +1,50 @@
 import React from "react";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
-import { formSchema } from "@whatsapp-clone/common";
+import * as Yup from "yup";
+
 function Login() {
   const navigate = useNavigate();
   const formik = useFormik({
     initialValues: { UserName: "", PassWord: "" },
-    validationSchema: formSchema,
+    validationSchema:Yup.object({
+      UserName: Yup.string()
+        .required("UserName required")
+        .min(6, "Username too short")
+        .max(28, "Username too long"),
+      PassWord: Yup.string()
+        .required("Password required")
+        .min(6, "Password too short")
+        .max(28, "Password too long"),
+    })
+    ,
     onSubmit: (values) => {
       const vals = { ...values };
       formik.handleReset();
 console.log(vals);
       // Adjust the URL to the correct endpoint for user login
-      fetch("http://localhost:5000/auth/login", {
+      fetch("http://localhost:5001/auth/login", {
         method: "POST",
         credentials: "include",
         headers: {
-          "Content-Type": "application/json",
+            "Content-Type": "application/json",
         },
         body: JSON.stringify(vals),
-      })
-        .then((res) => {
-          if (!res || !res.ok || res.status >= 400) {
-            throw new Error("Failed to log in"); // Throwing an error for better error handling
-          }
-          return res.json();
-        })
-        .then((data) => {
-          console.log(data);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-      console.log("vicky");
+    })
+    .then((res) => {
+        if (!res.ok) {
+            throw new Error("Failed to log in. HTTP status: " + res.status);
+        }
+        return res.json(); // Parse response body as JSON
+    })
+    .then((data) => {
+        console.log(data); // Log the parsed JSON response
+       
+    })
+    .catch((err) => {
+        console.error(err);
+    });
+    
     },
   });
 
