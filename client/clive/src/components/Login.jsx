@@ -1,18 +1,29 @@
 import React from "react";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
-import { formSchema } from "@whatsapp-clone/common";
+import * as Yup from "yup";
+
 function Login() {
   const navigate = useNavigate();
   const formik = useFormik({
-    initialValues: { UserName: "", PassWord: "" },
-    validationSchema: formSchema,
+    initialValues: { PhoneNumber: "", PassWord: "" },
+    validationSchema: Yup.object({
+      PhoneNumber: Yup.string()
+        .required("Phone number required")
+        .matches(/^[0-9]+$/, "Invalid phone number")
+        .min(10, "Phone number too short")
+        .max(10, "Phone number too long"),
+      PassWord: Yup.string()
+        .required("Password required")
+        .min(6, "Password too short")
+        .max(28, "Password too long"),
+    }),
     onSubmit: (values) => {
       const vals = { ...values };
       formik.handleReset();
-console.log(vals);
+      console.log(vals);
       // Adjust the URL to the correct endpoint for user login
-      fetch("http://localhost:5000/auth/login", {
+      fetch("http://localhost:5001/auth/login", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -21,36 +32,18 @@ console.log(vals);
         body: JSON.stringify(vals),
       })
         .then((res) => {
-          if (!res || !res.ok || res.status >= 400) {
-            throw new Error("Failed to log in"); // Throwing an error for better error handling
-          }
+          console.log(res.json);
           return res.json();
         })
         .then((data) => {
           console.log(data);
+          navigate("/login");
         })
         .catch((err) => {
           console.error(err);
         });
-      console.log("vicky");
     },
   });
-
-  /*const styles = {
-    backgroundColor: mode === "dark" ? "white" : "black",
-    color: mode === "dark" ? "black" : "white",
-  };  */
-
-  /*const joinRoom = () => {
-    if (username !== "" && room !== "") {
-      socket.emit("join_room", room);
-      setShowChat(false);
-    }
-  };*/
-
-  /*const toggleMode = () => {
-    setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
-  };*/
 
   return (
     <>
@@ -60,15 +53,15 @@ console.log(vals);
             <h1 id="headingLog">Log In</h1>
 
             <input
-              className="Username"
-              name="UserName"
-              type="text"
-              placeholder="Enter User Name ..."
-              {...formik.getFieldProps("UserName")}
+              className="PhoneNumber"
+              name="PhoneNumber"
+              type="tel"
+              placeholder="Phone Number..."
+              {...formik.getFieldProps("PhoneNumber")}
             />
-            {formik.touched.UserName && formik.errors.UserName ? (
-              <p className="error">{formik.errors.UserName}</p>
-            ) : null}
+            {formik.touched.PhoneNumber && formik.errors.PhoneNumber && (
+              <p className="error">{formik.errors.PhoneNumber}</p>
+            )}
 
             <input
               className="PassWord"
@@ -98,7 +91,4 @@ console.log(vals);
     </>
   );
 }
-/*<button className="SwitchB" style={styles} onClick={toggleMode}>
-   {mode === "dark" ? "white" : "dark"}
- </button>;*/ // App class name    `${mode === "dark" ? "dark-mode" : ""}`
 export default Login;
