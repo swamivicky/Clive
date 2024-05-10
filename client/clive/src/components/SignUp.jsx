@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState } from "react";
+=======
+import React from "react";
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
@@ -8,8 +12,13 @@ function SignUp() {
   const [response, setResponse] = useState("PhoneNumber exist Plz LogIn");
 
   const formik = useFormik({
+<<<<<<< HEAD
     initialValues: { UserName: "", PassWord: "", PhoneNumber: "" },
     validationSchema: Yup.object({
+=======
+    initialValues: { UserName: "", PassWord: "" },
+    validationSchema:Yup.object({
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
       UserName: Yup.string()
         .required("UserName required")
         .min(6, "Username too short")
@@ -18,12 +27,17 @@ function SignUp() {
         .required("Password required")
         .min(6, "Password too short")
         .max(28, "Password too long"),
+<<<<<<< HEAD
       PhoneNumber: Yup.string()
         .required("Phone number required")
         .matches(/^[0-9]+$/, "Invalid phone number")
         .min(10, "Phone number too short")
         .max(15, "Phone number too long"),
     }),
+=======
+    })
+,    
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
     onSubmit: (values, actions) => {
       const vals = { ...values };
       actions.resetForm();
@@ -45,9 +59,13 @@ function SignUp() {
         })
         .then((data) => {
           console.log(data);
+<<<<<<< HEAD
           if (data.Pnumber !== 1) {
             setResponse("Account Created : LogIn Now");
           }
+=======
+          navigate("/login");
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
         })
         .catch((err) => {
           console.error(err);
@@ -81,6 +99,7 @@ function SignUp() {
             <p className="error">{formik.errors.UserName}</p>
           )}
 
+<<<<<<< HEAD
           <input
             className="PassWord"
             name="PassWord"
@@ -112,6 +131,18 @@ function SignUp() {
             </button>
           </div>
         </form>
+=======
+            <div className="LogButtonDiv">
+              <button className="LPageButton" type="submit">
+                Create Account
+              </button>
+              <button className="LPageButton" onClick={() => navigate("*")}>
+                LogIn
+              </button>
+            </div>
+          </form>
+        </div>
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
       </div>
     </div>
   );

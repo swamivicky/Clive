@@ -8,12 +8,67 @@ const secretKey = "Clive0100100101000001";
 
 router.post("/register", async (req, res) => {
   try {
+<<<<<<< HEAD
     await validateSign(req, res);
     const user = {
       username: req.body.UserName,
       password: req.body.PassWord,
       phonenumber: req.body.PhoneNumber,
     };
+=======
+    // Move the validation inside the try block
+    await validateForm(req, res);
+    console.log(req.body);
+
+    const existingUser = await pool.query(
+      "SELECT username FROM users WHERE username=$1",
+      [req.body.UserName]
+    );
+
+    if (existingUser.rowCount === 0) {
+      if (!req.body.PassWord || req.body.PassWord.trim() === "") {
+        throw new Error("Password cannot be empty");
+      }
+
+      // Assuming the user credentials are validated and retrieved from the database
+      const user = {
+        username: req.body.UserName,
+        password: req.body.PassWord,
+      };
+
+      // Assuming JWT token is generated and set as a cookie upon successful login
+      const token = jwt.sign(user, secretKey);
+      res.cookie("jwtToken", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+      });
+
+      // The following code should be inside the if block
+      const salt = await bcrypt.genSalt(10);
+      const hashedPass = await bcrypt.hash(req.body.PassWord, salt);
+
+      const newUserQuery = await pool.query(
+        "INSERT INTO users(username, passhash) VALUES ($1, $2) RETURNING username",
+        [user.username, hashedPass]
+      );
+      res.json("Account created");
+    } else {
+      // Here you were trying to reference user.username which was not defined in this scope
+      res.json(`User ${req.body.UserName} exists. Please log in.`);
+      res.status(200);
+    }
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ loggedIn: false, error: "Internal Server Error" });
+  }
+});
+
+/*
+router.post("/login", async (req, res) => {
+  try {
+    validateForm(req, res);
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
 
     const existingUserPN = await pool.query(
       "SELECT phonenumber FROM users WHERE phonenumber=$1",
@@ -39,6 +94,7 @@ router.post("/register", async (req, res) => {
     res.status(500).json({ loggedIn: false, error: "Internal Server Error" });
   }
 });
+<<<<<<< HEAD
 
 router.post("/login", async (req, res) => {
   try {
@@ -111,5 +167,10 @@ router.get("/Clive", (req, res) => {
     res.status(401).json({ error: "JWT token must be provided" });
   }
 });
+=======
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
 
+router.get("/Clive", (req,res)  =>{
+
+});*/
 module.exports = router;

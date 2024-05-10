@@ -6,6 +6,7 @@ import * as Yup from "yup";
 function Login() {
   const navigate = useNavigate();
   const formik = useFormik({
+<<<<<<< HEAD
     initialValues: { PhoneNumber: "", PassWord: "" },
     validationSchema: Yup.object({
       PhoneNumber: Yup.string()
@@ -13,11 +14,24 @@ function Login() {
         .matches(/^[0-9]+$/, "Invalid phone number")
         .min(10, "Phone number too short")
         .max(10, "Phone number too long"),
+=======
+    initialValues: { UserName: "", PassWord: "" },
+    validationSchema:Yup.object({
+      UserName: Yup.string()
+        .required("UserName required")
+        .min(6, "Username too short")
+        .max(28, "Username too long"),
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
       PassWord: Yup.string()
         .required("Password required")
         .min(6, "Password too short")
         .max(28, "Password too long"),
+<<<<<<< HEAD
     }),
+=======
+    })
+    ,
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
     onSubmit: (values) => {
       const vals = { ...values };
       formik.handleReset();
@@ -27,9 +41,10 @@ function Login() {
         method: "POST",
         credentials: "include",
         headers: {
-          "Content-Type": "application/json",
+            "Content-Type": "application/json",
         },
         body: JSON.stringify(vals),
+<<<<<<< HEAD
       })
         .then((res) => {
           console.log(res.json);
@@ -42,6 +57,23 @@ function Login() {
         .catch((err) => {
           console.error(err);
         });
+=======
+    })
+    .then((res) => {
+        if (!res.ok) {
+            throw new Error("Failed to log in. HTTP status: " + res.status);
+        }
+        return res.json(); // Parse response body as JSON
+    })
+    .then((data) => {
+        console.log(data); // Log the parsed JSON response
+       
+    })
+    .catch((err) => {
+        console.error(err);
+    });
+    
+>>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
     },
   });
 
