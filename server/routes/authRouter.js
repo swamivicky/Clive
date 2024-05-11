@@ -8,17 +8,7 @@ const secretKey = "Clive0100100101000001";
 
 router.post("/register", async (req, res) => {
   try {
-<<<<<<< HEAD
     await validateSign(req, res);
-    const user = {
-      username: req.body.UserName,
-      password: req.body.PassWord,
-      phonenumber: req.body.PhoneNumber,
-    };
-=======
-    // Move the validation inside the try block
-    await validateForm(req, res);
-    console.log(req.body);
 
     const existingUser = await pool.query(
       "SELECT username FROM users WHERE username=$1",
@@ -30,106 +20,49 @@ router.post("/register", async (req, res) => {
         throw new Error("Password cannot be empty");
       }
 
-      // Assuming the user credentials are validated and retrieved from the database
-      const user = {
-        username: req.body.UserName,
-        password: req.body.PassWord,
-      };
-
-      // Assuming JWT token is generated and set as a cookie upon successful login
-      const token = jwt.sign(user, secretKey);
-      res.cookie("jwtToken", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-      });
-
-      // The following code should be inside the if block
       const salt = await bcrypt.genSalt(10);
       const hashedPass = await bcrypt.hash(req.body.PassWord, salt);
 
       const newUserQuery = await pool.query(
         "INSERT INTO users(username, passhash) VALUES ($1, $2) RETURNING username",
-        [user.username, hashedPass]
+        [req.body.UserName, hashedPass]
       );
       res.json("Account created");
     } else {
-      // Here you were trying to reference user.username which was not defined in this scope
       res.json(`User ${req.body.UserName} exists. Please log in.`);
       res.status(200);
     }
-  } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).json({ loggedIn: false, error: "Internal Server Error" });
-  }
-});
-
-/*
-router.post("/login", async (req, res) => {
-  try {
-    validateForm(req, res);
->>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
-
-    const existingUserPN = await pool.query(
-      "SELECT phonenumber FROM users WHERE phonenumber=$1",
-      [req.body.PhoneNumber]
-    );
-
-    let Pnumber = 1;
-    if (existingUserPN.rowCount === 0) {
-      const salt = await bcrypt.genSalt(10);
-      const hashedPass = await bcrypt.hash(req.body.PassWord, salt);
-
-      const newUserQuery = await pool.query(
-        "INSERT INTO users(phonenumber,username, passhash) VALUES ($1, $2,$3)",
-        [user.phonenumber, user.username, hashedPass]
-      );
-      Pnumber = 1;
-    } else {
-      Pnumber = 0;
-    }
-    res.json(Pnumber);
   } catch (error) {
     console.error("Error during registration:", error);
     res.status(500).json({ loggedIn: false, error: "Internal Server Error" });
   }
 });
-<<<<<<< HEAD
 
 router.post("/login", async (req, res) => {
   try {
     await validateLog(req, res);
 
-    const user = {
-      number: req.body.PhoneNumber,
-      password: req.body.PassWord,
-    };
-
     const existingUser = await pool.query(
-      "SELECT phonenumber, passhash FROM users WHERE phonenumber=$1",
-      [req.body.PhoneNumber]
+      "SELECT username, passhash FROM users WHERE username=$1",
+      [req.body.UserName]
     );
 
-    userpg = existingUser.rows[0];
+    if (existingUser.rowCount === 1) {
+      const user = existingUser.rows[0];
 
-    const pgusers = {
-      phonenumber: userpg.phonenumber,
-      passhash: userpg.passhash,
-    };
-
-    if (
-      user.number === pgusers.phonenumber &&
-      bcrypt.compareSync(user.password, pgusers.passhash)
-    ) {
-      const token = jwt.sign(user, secretKey);
-      res.cookie("jwtToken", token, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "strict",
-      });
-      res.json({ loggedIn: true });
+      if (bcrypt.compareSync(req.body.PassWord, user.passhash)) {
+        const token = jwt.sign({ username: user.username }, secretKey);
+        res.cookie("jwtToken", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "strict",
+        });
+        res.json({ loggedIn: true });
+      } else {
+        res.status(401).json({ loggedIn: false, error: "Invalid credentials" });
+      }
     } else {
-      res.status(401).json({ loggedIn: false, error: "Invalid credentials" });
+      res.status(401).json({ loggedIn: false, error: "User not found" });
     }
   } catch (error) {
     console.error("Error during login:", error);
@@ -140,23 +73,18 @@ router.post("/login", async (req, res) => {
 router.get("/Clive", (req, res) => {
   console.log(req.cookies);
 
-  // Extract JWT token from cookies
   const jwtToken = req.cookies.jwtToken;
 
   if (jwtToken) {
     try {
-      // Verify JWT token directly without stringification
       const verify = jwt.verify(jwtToken, secretKey);
 
-      // Log verification result
       console.log(verify);
 
       if (verify) {
         console.log("Token is valid");
-        // Do something when token is valid
       } else {
         console.log("Token is invalid");
-        // Do something when token is invalid
       }
     } catch (error) {
       console.error("Error verifying JWT token:", error);
@@ -167,10 +95,5 @@ router.get("/Clive", (req, res) => {
     res.status(401).json({ error: "JWT token must be provided" });
   }
 });
-=======
->>>>>>> e32786ce1c550b9e9651b39d9e259b5f66afcf6a
 
-router.get("/Clive", (req,res)  =>{
-
-});*/
 module.exports = router;
