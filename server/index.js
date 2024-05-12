@@ -6,6 +6,7 @@ const { Server } = require("socket.io");
 const helmet = require("helmet");
 const cors = require("cors");
 const session = require("express-session");
+const cookieParser = require("cookie-parser"); // Import cookie-parser module
 const router = require("./routes/authRouter");
 
 require("dotenv").config();
@@ -13,6 +14,7 @@ require("dotenv").config();
 app.use(express.json());
 app.use(helmet());
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cookieParser()); // Use cookie-parser middleware
 app.use(
   session({
     secret: process.env.COOKIE_SECRET,

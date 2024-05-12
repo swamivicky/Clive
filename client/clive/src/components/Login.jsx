@@ -1,10 +1,11 @@
-import React from "react";
+import React,{useState} from "react";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
 
 function Login() {
   const navigate = useNavigate();
+  const [response, setResponse] = useState();
   const formik = useFormik({
     initialValues: { PhoneNumber: "", PassWord: "", UserName: "" }, // Added UserName
     validationSchema: Yup.object({
@@ -13,10 +14,6 @@ function Login() {
         .matches(/^[0-9]+$/, "Invalid phone number")
         .min(10, "Phone number too short")
         .max(10, "Phone number too long"),
-      UserName: Yup.string() // Moved UserName validation here
-        .required("UserName required")
-        .min(6, "Username too short")
-        .max(28, "Username too long"),
       PassWord: Yup.string()
         .required("Password required")
         .min(6, "Password too short")
@@ -41,19 +38,29 @@ function Login() {
         })
         .then((data) => {
           console.log(data);
-          navigate("/login");
+          if(data===1)
+            {navigate("/Clive")}
+          else {
+            setResponse(data);}
         })
         .catch((err) => {
           console.error(err);
         });
     },
   });
-
   return (
     <>
       <div className="App">
         <div className="joinChatContainer">
           <form onSubmit={formik.handleSubmit}>
+          <div>
+            {response === 2 && (
+              <p className="displyRes">Incorrect password</p>
+            )}
+            {response === 3 && (
+              <p className="displyRes">User Not found</p>
+            )}
+          </div>
             <h1 id="headingLog">Log In</h1>
 
             <input

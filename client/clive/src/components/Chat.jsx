@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
+import sendImage from './send.jfif';
 const socket = io.connect("http://localhost:5001");
 
 function Chat() {
@@ -7,7 +8,7 @@ function Chat() {
   const [currentMessage, setCurrentMessage] = useState("");
   const [resData, setResData] = useState("");
   const [popup, setPopup] = useState(false);
-  const contentCreateContactRef = useRef(null);
+  const [pn,setPn]=useState()
 
   const sendMessage = async () => {
     if (currentMessage !== "") {
@@ -24,6 +25,25 @@ function Chat() {
   };
 
   useEffect(() => {
+    fetch("http://localhost:5001/auth/Clive", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+      })
+        .then((res) => {
+          console.log(res.json);
+          return res.json();
+        })
+        .then((data) => {
+          console.log(data);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    
     const receiveMessageHandler = (data) => {
       setMessageList((list) => [...list, data]);
     };
@@ -39,44 +59,62 @@ function Chat() {
   const togglePopup = () => {
     setPopup(!popup);
   };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        contentCreateContactRef.current &&
-        !contentCreateContactRef.current.contains(event.target)
-      ) {
-        setPopup(false);
-      }
-    };
-
-    document.addEventListener("click", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("click", handleClickOutside);
-    };
-  }, []);
-
+const Create = ()=>{
+  fetch("http://localhost:5001/auth/Create", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ PhoneNumber: pn }),
+       
+      })
+        .then((res) => {
+      
+          if (!res || !res.ok || res.status >= 400) {
+            throw new Error("Failed to log in");
+          }
+          return res.json();
+        })
+        .then((data) => {
+          console.log(data);
+          setPn("");
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    
+}
   return (
     <div className="chatPage">
-      <div className="contacts">
-        <button className="close" onClick={togglePopup}>
+      <div className="container">
+        <button className="Create" onClick={togglePopup}>
           Create New Contact
         </button>
         {popup && (
           <div className="contactCreateDiv">
             <div
-              ref={contentCreateContactRef}
               className="content_createContact"
             >
               <h2>Enter Phone Number</h2>
-              <input />
-              <button>Create</button>
+             <input
+            placeholder="PhoneNumber ..."
+            value={pn}
+            onChange={(event) => setPn(event.target.value)}
+            onKeyPress={(event) => {
+              event.key === "Enter" && Create();
+            }}
+          />
+              <button onClick={Create}>Create</button>
             </div>
           </div>
         )}
+
+        <div className="contacts" onClick={popup ? togglePopup : undefined}>
+          hello
+        </div>
       </div>
-      <div className="chatdiv">
+      <div className="chatdiv" onClick={popup ? togglePopup : undefined}>
         <div className="chat-header">
           <p>{`Live Chat --- ${resData.username}`}</p>
         </div>
@@ -113,6 +151,7 @@ function Chat() {
         </div>
         <div className="chat-footer">
           <input
+            className="Minput"
             placeholder="Type a message..."
             value={currentMessage}
             onChange={(event) => setCurrentMessage(event.target.value)}
@@ -120,7 +159,9 @@ function Chat() {
               event.key === "Enter" && sendMessage();
             }}
           />
-          <button onClick={sendMessage}>Send</button>
+          <div className="SimgDiv">
+            <img className="Simg" src={sendImage} alt="Send" onClick={sendMessage} />
+          </div>
         </div>
       </div>
     </div>

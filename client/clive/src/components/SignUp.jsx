@@ -8,7 +8,7 @@ function SignUp() {
   const [response, setResponse] = useState("PhoneNumber exist Plz LogIn");
 
   const formik = useFormik({
-    initialValues: { UserName: "", PassWord: "" },
+    initialValues: { UserName: "", PassWord: "", PhoneNumber: "" },
     validationSchema: Yup.object({
       UserName: Yup.string()
         .required("UserName required")
@@ -18,6 +18,11 @@ function SignUp() {
         .required("Password required")
         .min(6, "Password too short")
         .max(28, "Password too long"),
+      PhoneNumber: Yup.string()
+        .required("Phone number required")
+        .matches(/^[0-9]+$/, "Invalid phone number")
+        .min(10, "Phone number too short")
+        .max(10, "Phone number too long"),
     }),
     onSubmit: (values, actions) => {
       const vals = { ...values };
@@ -40,7 +45,7 @@ function SignUp() {
         })
         .then((data) => {
           console.log(data);
-          navigate("/login");
+         setResponse(data)
         })
         .catch((err) => {
           console.error(err);
@@ -53,15 +58,26 @@ function SignUp() {
       <div className="joinChatContainer">
         <form onSubmit={formik.handleSubmit}>
           <div>
-            {response === "PhoneNumber exist Plz LogIn" && (
-              <p className="displyRes">{response}</p>
+            {response === 1 && (
+              <p className="displyResG">{"Account Created LogIn Now"}</p>
             )}
-            {response !== "PhoneNumber exist Plz LogIn" && (
-              <p className="displySRes">{response}</p>
+            {response ===2  && (
+              <p className="displyResR">{"This Phone Number Is In Use"}</p>
             )}
           </div>
 
           <h1 id="headingLog">SignUp</h1>
+          <input
+            className="PhoneNumber"
+            name="PhoneNumber"
+            type="tel"
+            placeholder="Phone Number..."
+            {...formik.getFieldProps("PhoneNumber")}
+          />
+          {formik.touched.PhoneNumber && formik.errors.PhoneNumber && (
+            <p className="error">{formik.errors.PhoneNumber}</p>
+          )}
+
 
           <input
             className="Username"
@@ -78,7 +94,7 @@ function SignUp() {
             className="PassWord"
             name="PassWord"
             type="password"
-            placeholder="Password..."
+            placeholder="Set Password..."
             {...formik.getFieldProps("PassWord")}
           />
           {formik.touched.PassWord && formik.errors.PassWord && (

@@ -1,14 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const { validateSign, validateLog } = require("../controllers/validateform");
+const { Signvalidate, Logvalidate } = require("../controllers/validateform");
 const pool = require("../dataBase");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const secretKey = "Clive0100100101000001";
-
+let TF = 0;
 router.post("/register", async (req, res) => {
   try {
-    await validateSign(req, res);
+    await Signvalidate(req, res);
 
     const existingUser = await pool.query(
       "SELECT username FROM users WHERE username=$1",
@@ -24,13 +24,14 @@ router.post("/register", async (req, res) => {
       const hashedPass = await bcrypt.hash(req.body.PassWord, salt);
 
       const newUserQuery = await pool.query(
-        "INSERT INTO users(username, passhash) VALUES ($1, $2) RETURNING username",
-        [req.body.UserName, hashedPass]
+        "INSERT INTO users(phonenumber,username, passhash) VALUES ($1, $2, $3) RETURNING username",
+        [req.body.PhoneNumber,req.body.UserName, hashedPass]
       );
-      res.json("Account created");
+      TF = 1;
+      res.json(TF);
     } else {
-      res.json(`User ${req.body.UserName} exists. Please log in.`);
-      res.status(200);
+      TF=2;
+      res.json(TF);
     }
   } catch (error) {
     console.error("Error during registration:", error);
@@ -40,29 +41,32 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    await validateLog(req, res);
+    await Logvalidate(req, res);
 
     const existingUser = await pool.query(
-      "SELECT username, passhash FROM users WHERE username=$1",
-      [req.body.UserName]
+      "SELECT phonenumber, passhash FROM users WHERE phonenumber=$1",
+      [req.body.PhoneNumber]
     );
 
     if (existingUser.rowCount === 1) {
       const user = existingUser.rows[0];
 
       if (bcrypt.compareSync(req.body.PassWord, user.passhash)) {
-        const token = jwt.sign({ username: user.username }, secretKey);
+        const token = jwt.sign({ phonenumber: user.phonenumber }, secretKey);
         res.cookie("jwtToken", token, {
           httpOnly: true,
           secure: true,
           sameSite: "strict",
         });
-        res.json({ loggedIn: true });
+        TF = 1;
+        res.json(TF);
       } else {
-        res.status(401).json({ loggedIn: false, error: "Invalid credentials" });
+        TF=2;
+        res.json(TF);
       }
     } else {
-      res.status(401).json({ loggedIn: false, error: "User not found" });
+      TF=3;
+      res.json(TF)
     }
   } catch (error) {
     console.error("Error during login:", error);
@@ -71,7 +75,6 @@ router.post("/login", async (req, res) => {
 });
 
 router.get("/Clive", (req, res) => {
-  console.log(req.cookies);
 
   const jwtToken = req.cookies.jwtToken;
 
@@ -95,5 +98,7 @@ router.get("/Clive", (req, res) => {
     res.status(401).json({ error: "JWT token must be provided" });
   }
 });
-
+router.post("/Create", (req, res) => {
+  console.log(req);
+});
 module.exports = router;
