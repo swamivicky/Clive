@@ -27,6 +27,9 @@ router.post("/register", async (req, res) => {
         "INSERT INTO users(phonenumber,username, passhash) VALUES ($1, $2, $3) RETURNING username",
         [req.body.PhoneNumber,req.body.UserName, hashedPass]
       );
+      await pool.query(
+        `ALTER TABLE contacts ADD COLUMN "${req.body.PhoneNumber}" VARCHAR(20)`
+      );
       TF = 1;
       res.json(TF);
     } else {
@@ -98,7 +101,41 @@ router.get("/Clive", (req, res) => {
     res.status(401).json({ error: "JWT token must be provided" });
   }
 });
-router.post("/Create", (req, res) => {
-  console.log(req);
+router.post("/Create", async (req, res) => {
+  const jwtToken = req.cookies.jwtToken;
+
+  if (jwtToken) {
+    try {
+      const verify = jwt.verify(jwtToken, secretKey);
+
+      console.log(verify);
+
+      if (verify) {
+const UserP = verify.phonenumber;
+const CreateP = req.body.PhoneNumber;
+console.log(UserP,CreateP);
+        const existingNum = await pool.query(
+          "SELECT column_name FROM information_schema.columns WHERE table_name = 'contacts' AND column_name = $1",
+          [req.body.PhoneNumber]
+        );
+        if(existingNum.rowCount === 1){
+const Contact = UserP + CreateP;
+console.log(Contact);
+
+        }else{
+          TF = 0;
+          res.json(TF);
+        }
+      } else {
+        console.log("Token is invalid");
+      }
+    } catch (error) {
+      console.error("Error verifying JWT token:", error);
+      res.status(401).json({ error: "Invalid JWT token" });
+    }
+  } else {
+    console.error("JWT token not provided in cookies");
+    res.status(401).json({ error: "JWT token must be provided" });
+  }
 });
 module.exports = router;
