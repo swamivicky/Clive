@@ -35,7 +35,6 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
   socket.on("send_message", (data) => {
@@ -49,6 +48,7 @@ io.on("connection", (socket) => {
     console.log("User Disconnected", socket.id);
   });
 });
+
 const port = 5001;
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);

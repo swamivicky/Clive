@@ -89,6 +89,7 @@ router.get("/Clive", (req, res) => {
 
       if (verify) {
         console.log("Token is valid");
+        res.json("hello");
       } else {
         console.log("Token is invalid");
       }
@@ -121,7 +122,6 @@ console.log(UserP,CreateP);
         if(existingNum.rowCount === 1){
 const Contact = UserP + CreateP;
 console.log(Contact);
-
         }else{
           TF = 0;
           res.json(TF);

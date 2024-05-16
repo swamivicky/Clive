@@ -8,7 +8,8 @@ function Chat() {
   const [currentMessage, setCurrentMessage] = useState("");
   const [resData, setResData] = useState("");
   const [popup, setPopup] = useState(false);
-  const [pn,setPn]=useState()
+  const [pn,setPn]=useState();
+  
 
   const sendMessage = async () => {
     if (currentMessage !== "") {
@@ -24,25 +25,28 @@ function Chat() {
     }
   };
 
-  useEffect(() => {
+  useEffect(()=>{
     fetch("http://localhost:5001/auth/Clive", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
 
+    })
+      .then((res) => {
+        console.log(res.json);
+        return res.json();
       })
-        .then((res) => {
-          console.log(res.json);
-          return res.json();
-        })
-        .then((data) => {
-          console.log(data);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
+      .then((data) => {
+        console.log(data);
+        setResData(data);
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  },[])
+  useEffect(() => {
     
     const receiveMessageHandler = (data) => {
       setMessageList((list) => [...list, data]);
@@ -60,6 +64,7 @@ function Chat() {
     setPopup(!popup);
   };
 const Create = ()=>{
+  if(pn !== ""){
   fetch("http://localhost:5001/auth/Create", {
         method: "POST",
         credentials: "include",
@@ -84,7 +89,7 @@ const Create = ()=>{
           console.error(err);
         });
     
-}
+}}
   return (
     <div className="chatPage">
       <div className="container">
