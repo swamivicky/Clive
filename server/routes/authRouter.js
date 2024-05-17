@@ -12,7 +12,7 @@ router.post("/register", async (req, res) => {
 
     const existingUser = await pool.query(
       "SELECT username FROM users WHERE username=$1",
-      [req.body.UserName]
+      [req.body.PhoneNumber]
     );
 
     if (existingUser.rowCount === 0) {
@@ -23,13 +23,13 @@ router.post("/register", async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       const hashedPass = await bcrypt.hash(req.body.PassWord, salt);
 
-      const newUserQuery = await pool.query(
+      const newUserQuery = pool.query(
         "INSERT INTO users(phonenumber,username, passhash) VALUES ($1, $2, $3) RETURNING username",
         [req.body.PhoneNumber,req.body.UserName, hashedPass]
       );
-      await pool.query(
-        `ALTER TABLE contacts ADD COLUMN "${req.body.PhoneNumber}" VARCHAR(20)`
-      );
+  let c = "c_"+req.body.PhoneNumber;
+  console.log(typeof c);
+   pool.query(`ALTER TABLE contacts ADD COLUMN "${c}" VARCHAR(23)`);
       TF = 1;
       res.json(TF);
     } else {
@@ -112,16 +112,21 @@ router.post("/Create", async (req, res) => {
       console.log(verify);
 
       if (verify) {
-const UserP = verify.phonenumber;
-const CreateP = req.body.PhoneNumber;
-console.log(UserP,CreateP);
+const user =  "c_"+verify.phonenumber;
+const NC = "c_"+req.body.PhoneNumber;
+console.log(typeof user);
+console.log(typeof NC);
         const existingNum = await pool.query(
           "SELECT column_name FROM information_schema.columns WHERE table_name = 'contacts' AND column_name = $1",
-          [req.body.PhoneNumber]
-        );
+          [NC]);
         if(existingNum.rowCount === 1){
-const Contact = UserP + CreateP;
-console.log(Contact);
+const Contact = verify.phonenumber+ "_C_"+req.body.PhoneNumber;
+
+console.log(typeof Contact);
+ pool.query(
+    `INSERT INTO contacts (${user}, ${NC}) VALUES ($1, $2)`,
+    [Contact, Contact]
+    );
         }else{
           TF = 0;
           res.json(TF);
