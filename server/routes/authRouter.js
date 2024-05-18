@@ -25,15 +25,21 @@ router.post("/register", async (req, res) => {
 
       const newUserQuery = pool.query(
         "INSERT INTO users(phonenumber,username, passhash) VALUES ($1, $2, $3) RETURNING username",
-        [req.body.PhoneNumber,req.body.UserName, hashedPass]
+        [req.body.PhoneNumber, req.body.UserName, hashedPass]
       );
-  let c = "c_"+req.body.PhoneNumber;
-  console.log(typeof c);
-   pool.query(`ALTER TABLE contacts ADD COLUMN "${c}" VARCHAR(23)`);
+      let c = "c_" + req.body.PhoneNumber;
+      console.log(typeof c);
+
+      await pool.query(`
+    CREATE TABLE ${c} (
+      contacts VARCHAR(23)
+    );
+  `);
+
       TF = 1;
       res.json(TF);
     } else {
-      TF=2;
+      TF = 2;
       res.json(TF);
     }
   } catch (error) {
@@ -64,11 +70,11 @@ router.post("/login", async (req, res) => {
         TF = 1;
         res.json(TF);
       } else {
-        TF=2;
+        TF = 2;
         res.json(TF);
       }
     } else {
-      TF=3;
+      TF = 3;
       res.json(TF)
     }
   } catch (error) {
@@ -112,25 +118,41 @@ router.post("/Create", async (req, res) => {
       console.log(verify);
 
       if (verify) {
-const user =  "c_"+verify.phonenumber;
-const NC = "c_"+req.body.PhoneNumber;
-console.log(typeof user);
-console.log(typeof NC);
-        const existingNum = await pool.query(
-          "SELECT column_name FROM information_schema.columns WHERE table_name = 'contacts' AND column_name = $1",
-          [NC]);
-        if(existingNum.rowCount === 1){
-const Contact = verify.phonenumber+ "_C_"+req.body.PhoneNumber;
+        const user = "c_" + verify.phonenumber;
+        const NC = "c_" + req.body.PhoneNumber;
+        const Contact = verify.phonenumber + "_C_" + req.body.PhoneNumber;
+        const Rcontact = req.body.PhoneNumber + "_C_" + verify.phonenumber;
+        console.log("hello1");
+        const Econtact = await pool.query(
+          `SELECT contacts FROM ${user} WHERE contacts=$1`,
+          [Contact]);
+        const REcontact = await pool.query(`SELECT contacts FROM ${user} WHERE contacts=$1`,
+          [Rcontact]);
+        const existingUser = await pool.query(
+          "SELECT username FROM users WHERE username=$1",
+          [req.body.PhoneNumber]
+        );
 
-console.log(typeof Contact);
- pool.query(
-    `INSERT INTO contacts (${user}, ${NC}) VALUES ($1, $2)`,
-    [Contact, Contact]
-    );
-        }else{
-          TF = 0;
-          res.json(TF);
-        }
+        if (existingUser.rowCount !== 0) {
+          console.log("hello2");
+
+          if (Econtact.rowCount === 0 && REcontact.rowCount === 0) {
+console.log("hello3");
+            pool.query(
+              `INSERT INTO ${user} (contacts) VALUES ($1)`,
+              [Contact]
+            );
+            pool.query(
+              `INSERT INTO ${NC} (contacts) VALUES ($1)`,
+              [Contact]
+            );
+            TF = 1;
+            res.json(TF);
+          } else {
+            TF = 0;
+            res.json(TF);
+          }
+        } else { res.json("User not exist") }
       } else {
         console.log("Token is invalid");
       }
