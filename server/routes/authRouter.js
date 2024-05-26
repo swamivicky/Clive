@@ -11,7 +11,7 @@ router.post("/register", async (req, res) => {
     await Signvalidate(req, res);
 
     const existingUser = await pool.query(
-      "SELECT username FROM users WHERE username=$1",
+      "SELECT phonenumber FROM users WHERE phonenumber=$1",
       [req.body.PhoneNumber]
     );
 
@@ -27,14 +27,6 @@ router.post("/register", async (req, res) => {
         "INSERT INTO users(phonenumber,username, passhash) VALUES ($1, $2, $3) RETURNING username",
         [req.body.PhoneNumber, req.body.UserName, hashedPass]
       );
-      let c = "c_" + req.body.PhoneNumber;
-      console.log(typeof c);
-
-      await pool.query(`
-    CREATE TABLE ${c} (
-      contacts VARCHAR(23)
-    );
-  `);
 
       TF = 1;
       res.json(TF);
@@ -75,7 +67,7 @@ router.post("/login", async (req, res) => {
       }
     } else {
       TF = 3;
-      res.json(TF)
+      res.json(TF);
     }
   } catch (error) {
     console.error("Error during login:", error);
@@ -83,8 +75,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get("/Clive", (req, res) => {
-
+router.get("/Clive", async (req, res) => {
   const jwtToken = req.cookies.jwtToken;
 
   if (jwtToken) {
@@ -95,7 +86,15 @@ router.get("/Clive", (req, res) => {
 
       if (verify) {
         console.log("Token is valid");
-        res.json("hello");
+        const Clist = await pool.query(
+          "SELECT  roomid,owner,c_name,c_phonenum FROM contacts WHERE owner=$1",
+          [verify.phonenumber]
+        );
+        const res = {
+          list: Clist.rows,
+          owner: verify.phonenumber,
+        };
+        console.log(Clist.rows);
       } else {
         console.log("Token is invalid");
       }
@@ -111,58 +110,86 @@ router.get("/Clive", (req, res) => {
 router.post("/Create", async (req, res) => {
   const jwtToken = req.cookies.jwtToken;
 
-  if (jwtToken) {
-    try {
-      const verify = jwt.verify(jwtToken, secretKey);
-
-      console.log(verify);
-
-      if (verify) {
-        const user = "c_" + verify.phonenumber;
-        const NC = "c_" + req.body.PhoneNumber;
-        const Contact = verify.phonenumber + "_C_" + req.body.PhoneNumber;
-        const Rcontact = req.body.PhoneNumber + "_C_" + verify.phonenumber;
-        console.log("hello1");
-        const Econtact = await pool.query(
-          `SELECT contacts FROM ${user} WHERE contacts=$1`,
-          [Contact]);
-        const REcontact = await pool.query(`SELECT contacts FROM ${user} WHERE contacts=$1`,
-          [Rcontact]);
-        const existingUser = await pool.query(
-          "SELECT username FROM users WHERE username=$1",
-          [req.body.PhoneNumber]
-        );
-
-        if (existingUser.rowCount !== 0) {
-          console.log("hello2");
-
-          if (Econtact.rowCount === 0 && REcontact.rowCount === 0) {
-console.log("hello3");
-            pool.query(
-              `INSERT INTO ${user} (contacts) VALUES ($1)`,
-              [Contact]
-            );
-            pool.query(
-              `INSERT INTO ${NC} (contacts) VALUES ($1)`,
-              [Contact]
-            );
-            TF = 1;
-            res.json(TF);
-          } else {
-            TF = 0;
-            res.json(TF);
-          }
-        } else { res.json("User not exist") }
-      } else {
-        console.log("Token is invalid");
-      }
-    } catch (error) {
-      console.error("Error verifying JWT token:", error);
-      res.status(401).json({ error: "Invalid JWT token" });
-    }
-  } else {
+  if (!jwtToken) {
     console.error("JWT token not provided in cookies");
-    res.status(401).json({ error: "JWT token must be provided" });
+    return res.status(401).json({ error: "JWT token must be provided" });
+  }
+
+  try {
+    const verify = jwt.verify(jwtToken, secretKey);
+
+    if (!verify) {
+      console.log("Token is invalid");
+      return res.status(401).json({ error: "Invalid JWT token" });
+    }
+
+    console.log("Token is valid");
+    const userNameQuery = await pool.query(
+      "SELECT username FROM users WHERE phonenumber=$1",
+      [verify.phonenumber]
+    );
+    const newContactUserQuery = await pool.query(
+      "SELECT phonenumber, username FROM users WHERE phonenumber=$1",
+      [req.body.PhoneNumber]
+    );
+    const existingContactsQuery = await pool.query(
+      "SELECT roomid FROM contacts WHERE owner=$1",
+      [verify.phonenumber]
+    );
+
+    const userName = userNameQuery.rows[0];
+    const newContactUser = newContactUserQuery.rows[0];
+    const existingContacts = existingContactsQuery.rows;
+    let isValidContact = true;
+
+    for (const contact of existingContacts) {
+      if (
+        contact.roomid === verify.phonenumber + req.body.PhoneNumber ||
+        contact.roomid === req.body.PhoneNumber + verify.phonenumber ||
+        verify.phonenumber === req.body.PhoneNumber
+      ) {
+        isValidContact = false;
+        break;
+      }
+    }
+
+    if (newContactUserQuery.rowCount === 1 && isValidContact) {
+      const newContact = {
+        roomid: verify.phonenumber + req.body.PhoneNumber,
+        owner: verify.phonenumber,
+        participant: newContactUser.username,
+        participant_N: req.body.PhoneNumber,
+      };
+
+      await pool.query(
+        "INSERT INTO contacts(owner, roomid, c_name, c_phonenum) VALUES ($1, $2, $3, $4)",
+        [
+          newContact.owner,
+          newContact.roomid,
+          newContact.participant,
+          newContact.participant_N,
+        ]
+      );
+
+      await pool.query(
+        "INSERT INTO contacts(owner, roomid, c_name, c_phonenum) VALUES ($1, $2, $3, $4)",
+        [
+          req.body.PhoneNumber,
+          newContact.roomid,
+          userName.username,
+          verify.phonenumber,
+        ]
+      );
+
+      res.json(newContact);
+      console.log(true);
+    } else {
+      console.log(false);
+    }
+  } catch (error) {
+    console.error("Error verifying JWT token:", error);
+    res.status(401).json({ error: "Invalid JWT token" });
   }
 });
+
 module.exports = router;

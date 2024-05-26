@@ -1,4 +1,4 @@
-import React,{useState} from "react";
+import React, { useState } from "react";
 import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import * as Yup from "yup";
@@ -38,10 +38,11 @@ function Login() {
         })
         .then((data) => {
           console.log(data);
-          if(data===1)
-            {navigate("/Clive")}
-          else {
-            setResponse(data);}
+          if (data === 1) {
+            navigate("/Clive");
+          } else {
+            setResponse(data);
+          }
         })
         .catch((err) => {
           console.error(err);
@@ -53,14 +54,12 @@ function Login() {
       <div className="App">
         <div className="joinChatContainer">
           <form onSubmit={formik.handleSubmit}>
-          <div>
-            {response === 2 && (
-              <p className="displyRes">Incorrect password</p>
-            )}
-            {response === 3 && (
-              <p className="displyRes">User Not found</p>
-            )}
-          </div>
+            <div>
+              {response === 2 && (
+                <p className="displyRes">Incorrect password</p>
+              )}
+              {response === 3 && <p className="displyRes">User Not found</p>}
+            </div>
             <h1 id="headingLog">Log In</h1>
 
             <input
