@@ -86,15 +86,26 @@ router.get("/Clive", async (req, res) => {
 
       if (verify) {
         console.log("Token is valid");
+
+        const Owner = await pool.query(
+          "SELECT phonenumber,username FROM users WHERE phonenumber=$1",
+          [verify.phonenumber]
+        );
+        const Auth = Owner.rows[0];
+        console.log(Auth.username);
+        console.log(Auth.phonenumber);
         const Clist = await pool.query(
           "SELECT  roomid,owner,c_name,c_phonenum FROM contacts WHERE owner=$1",
           [verify.phonenumber]
         );
-        const res = {
+        const response = {
           list: Clist.rows,
-          owner: verify.phonenumber,
+          v: {
+            owner: Auth.username,
+            phone_N: Auth.phonenumber,
+          },
         };
-        console.log(Clist.rows);
+        res.json(response);
       } else {
         console.log("Token is invalid");
       }

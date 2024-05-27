@@ -8,9 +8,10 @@ const socket = io.connect("http://localhost:5001");
 function Chat() {
   const [messageList, setMessageList] = useState([]);
   const [popup, setPopup] = useState(false);
-  const [CresData, setCresData] = useState([]);
+  const [cresData, setCresData] = useState();
   const [selectedContact, setSelectedContact] = useState(null);
   const [msgD, setMsgD] = useState(null);
+  const [list, setList] = useState([]);
 
   const vicky = useFormik({
     initialValues: { message: "" },
@@ -24,12 +25,12 @@ function Chat() {
       if (vals !== "" && selectedContact) {
         const messageData = {
           room: selectedContact.roomid,
-          author: selectedContact.owner,
+          author: cresData.phone_N,
           Number: selectedContact.c_phonenum,
           message: vals,
           time: new Date().toLocaleTimeString(),
         };
-        setMsgD();
+        setMsgD(messageData);
         await socket.emit("send_message", messageData);
         actions.resetForm();
         setMessageList((list) => [...list, messageData]);
@@ -61,7 +62,7 @@ function Chat() {
         .then((res) => res.json())
         .then((data) => {
           if (data) {
-            setCresData((list) => [...list, data]);
+            setList((list) => [...list, data]);
           }
           formik.resetForm();
           togglePopup();
@@ -82,8 +83,8 @@ function Chat() {
     })
       .then((res) => res.json())
       .then((data) => {
-        setCresData(data); // Ensure the data is an array
-        console.log(CresData);
+        setCresData(data.v);
+        setList(data.list);
       })
       .catch((err) => {
         console.error(err);
@@ -133,7 +134,7 @@ function Chat() {
           </div>
         )}
         <div className="contacts" onClick={popup ? togglePopup : undefined}>
-          {CresData.list.map((data, index) => (
+          {list.map((data, index) => (
             <div
               key={index}
               className="contact"
@@ -148,7 +149,11 @@ function Chat() {
       </div>
       <div className="chatdiv">
         <div className="chat-header">
-          <p>{`Live Chat --- ${CresData.owner}`}</p>
+          {selectedContact ? (
+            <p>{`Live Chat --- ${selectedContact.c_name}`}</p>
+          ) : (
+            <p>*****LIVE CHAT*****</p>
+          )}
         </div>
         <div className="chat-body">
           {messageList.map((messageContent, index) => (
@@ -156,7 +161,7 @@ function Chat() {
               key={index}
               className="message"
               id={
-                selectedContact && selectedContact.contactName === msgD.author
+                selectedContact && cresData.phone_N === msgD.author
                   ? "you"
                   : "other"
               }
@@ -164,7 +169,7 @@ function Chat() {
               <div
                 className="msgdiv"
                 id={
-                  selectedContact && selectedContact.contactName === msgD.author
+                  selectedContact && cresData.phone_N === msgD.author
                     ? "you"
                     : "other"
                 }
@@ -172,8 +177,7 @@ function Chat() {
                 <div
                   className="msg"
                   id={
-                    selectedContact &&
-                    selectedContact.contactName === messageContent.author
+                    selectedContact && cresData.phone_N === msgD.author
                       ? "you"
                       : "other"
                   }
@@ -183,7 +187,7 @@ function Chat() {
                   </div>
                   <div className="message-meta">
                     <div>{msgD.time}</div>
-                    <div>{msgD.author}</div>
+                    <div>{cresData.owner}</div>
                   </div>
                 </div>
               </div>
