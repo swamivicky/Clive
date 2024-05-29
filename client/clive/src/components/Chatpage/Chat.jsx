@@ -13,6 +13,10 @@ function Chat() {
   const [msgD, setMsgD] = useState(null);
   const [list, setList] = useState([]);
 
+  const join = (data) => {
+    socket.emit("join_room", data);
+    setSelectedContact(data);
+  };
   const vicky = useFormik({
     initialValues: { message: "" },
     validationSchema: Yup.object({
@@ -20,20 +24,21 @@ function Chat() {
     }),
     onSubmit: async (values, actions) => {
       const vals = values.message;
-      console.log(vals);
-      console.log(selectedContact);
       if (vals !== "" && selectedContact) {
         const messageData = {
           room: selectedContact.roomid,
           author: cresData.phone_N,
-          Number: selectedContact.c_phonenum,
+          authName: cresData.owner,
+          number: selectedContact.c_phonenum,
           message: vals,
+          key: "vicky",
           time: new Date().toLocaleTimeString(),
         };
         setMsgD(messageData);
         await socket.emit("send_message", messageData);
         actions.resetForm();
         setMessageList((list) => [...list, messageData]);
+        console.log(messageList);
       }
     },
   });
@@ -62,7 +67,7 @@ function Chat() {
         .then((res) => res.json())
         .then((data) => {
           if (data) {
-            setList((list) => [...list, data]);
+            setList((list) => [data, ...list]);
           }
           formik.resetForm();
           togglePopup();
@@ -92,8 +97,9 @@ function Chat() {
   }, []);
 
   useEffect(() => {
-    const receiveMessageHandler = (data) => {
-      setMessageList((list) => [...list, data]);
+    const receiveMessageHandler = async (data) => {
+      console.log(data);
+      await setMessageList((list) => [...list, data]);
     };
 
     socket.on("receive_message", receiveMessageHandler);
@@ -101,7 +107,7 @@ function Chat() {
     return () => {
       socket.off("receive_message", receiveMessageHandler);
     };
-  }, []);
+  }, [socket]);
   const togglePopup = () => {
     setPopup(!popup);
   };
@@ -135,14 +141,8 @@ function Chat() {
         )}
         <div className="contacts" onClick={popup ? togglePopup : undefined}>
           {list.map((data, index) => (
-            <div
-              key={index}
-              className="contact"
-              onClick={() => setSelectedContact(data)}
-            >
+            <div key={index} className="contact" onClick={() => join(data)}>
               <p>{data.c_name}</p>
-              <p>{data.c_phonenum}</p>
-              <p>{data.roomid}</p>
             </div>
           ))}
         </div>
@@ -150,7 +150,7 @@ function Chat() {
       <div className="chatdiv">
         <div className="chat-header">
           {selectedContact ? (
-            <p>{`Live Chat --- ${selectedContact.c_name}`}</p>
+            <p>{`${cresData.owner} - Live Chat --- ${selectedContact.c_name}`}</p>
           ) : (
             <p>*****LIVE CHAT*****</p>
           )}
@@ -161,7 +161,7 @@ function Chat() {
               key={index}
               className="message"
               id={
-                selectedContact && cresData.phone_N === msgD.author
+                selectedContact && cresData.phone_N === messageContent.author
                   ? "you"
                   : "other"
               }
@@ -169,7 +169,7 @@ function Chat() {
               <div
                 className="msgdiv"
                 id={
-                  selectedContact && cresData.phone_N === msgD.author
+                  selectedContact && cresData.phone_N === messageContent.author
                     ? "you"
                     : "other"
                 }
@@ -177,17 +177,18 @@ function Chat() {
                 <div
                   className="msg"
                   id={
-                    selectedContact && cresData.phone_N === msgD.author
+                    selectedContact &&
+                    cresData.phone_N === messageContent.author
                       ? "you"
                       : "other"
                   }
                 >
                   <div className="message-content">
-                    <div>{msgD.message}</div>
+                    <div>{messageContent.message}</div>
                   </div>
                   <div className="message-meta">
-                    <div>{msgD.time}</div>
-                    <div>{cresData.owner}</div>
+                    <div>{messageContent.time}</div>
+                    <div>{messageContent.authName}</div>
                   </div>
                 </div>
               </div>

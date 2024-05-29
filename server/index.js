@@ -4,11 +4,11 @@ const app = express();
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const helmet = require("helmet");
+const pool = require("./dataBase");
 const cors = require("cors");
 const session = require("express-session");
 const cookieParser = require("cookie-parser"); // Import cookie-parser module
 const router = require("./routes/authRouter");
-
 require("dotenv").config();
 
 app.use(express.json());
@@ -37,12 +37,25 @@ const io = new Server(server, {
 });
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
-  socket.on("send_message", (data) => {
-    console.log(data);
+  socket.on("send_message", async (data) => {
     socket.to(data.room).emit("receive_message", data);
+    console.log(data);
+    if (data.key === "vicky") {
+      await pool.query(
+        "INSERT INTO M_data( room, author_num, authname, senttonum, message, time) VALUES ($1, $2, $3, $4, $5, $6)",
+        [
+          data.room,
+          data.author,
+          data.authName,
+          data.number,
+          data.message,
+          data.time,
+        ]
+      );
+    }
   });
-  socket.on("join_room", (room) => {
-    socket.join(room);
+  socket.on("join_room", (data) => {
+    socket.join(data.roomid);
   });
   socket.on("disconnect", () => {
     console.log("User Disconnected", socket.id);
