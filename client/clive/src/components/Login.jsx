@@ -38,7 +38,7 @@ function Login() {
         .then((data) => {
           console.log(data);
           if (data === 1) {
-            navigate("/Clive");
+            navigate("/clive");
           } else {
             setResponse(data);
           }

@@ -1,4 +1,6 @@
-
+.H1{
+  margin:6px;
+}
 .App {
   position: relative;
  display: flex;

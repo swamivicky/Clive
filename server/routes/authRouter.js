@@ -152,24 +152,24 @@ router.post("/Create", async (req, res) => {
     const newContactUser = newContactUserQuery.rows[0];
     const existingContacts = existingContactsQuery.rows;
     let isValidContact = true;
-
+    console.log(typeof verify.phonenumber);
+    console.log(typeof req.body.PhoneNumber);
     for (const contact of existingContacts) {
       if (
-        contact.roomid === verify.phonenumber + req.body.PhoneNumber ||
         contact.roomid === req.body.PhoneNumber + verify.phonenumber ||
+        contact.roomid === verify.phonenumber + req.body.PhoneNumber ||
         verify.phonenumber === req.body.PhoneNumber
       ) {
         isValidContact = false;
-        break;
       }
     }
-
+    console.log(isValidContact);
     if (newContactUserQuery.rowCount === 1 && isValidContact) {
       const newContact = {
-        roomid: verify.phonenumber + req.body.PhoneNumber,
+        c_name: newContactUser.username,
+        c_phonenum: req.body.PhoneNumber,
         owner: verify.phonenumber,
-        participant: newContactUser.username,
-        participant_N: req.body.PhoneNumber,
+        roomid: verify.phonenumber + req.body.PhoneNumber,
       };
 
       await pool.query(
@@ -177,8 +177,8 @@ router.post("/Create", async (req, res) => {
         [
           newContact.owner,
           newContact.roomid,
-          newContact.participant,
-          newContact.participant_N,
+          newContact.c_name,
+          newContact.c_phonenum,
         ]
       );
 
@@ -193,9 +193,35 @@ router.post("/Create", async (req, res) => {
       );
 
       res.json(newContact);
-      console.log(true);
+      console.log("vicky");
     } else {
       console.log(false);
+    }
+  } catch (error) {
+    console.error("Error verifying JWT token:", error);
+    res.status(401).json({ error: "Invalid JWT token" });
+  }
+});
+
+router.get("/Chats", async (req, res) => {
+  try {
+    const jwtToken = req.cookies.jwtToken;
+    const verify = jwt.verify(jwtToken, secretKey);
+
+    console.log(verify);
+
+    if (verify) {
+      console.log("Token is valid");
+      const Rdata = req.headers.data; // Assuming Rdata is a JSON string
+      const data = JSON.parse(Rdata);
+      console.log(data);
+      const dataList = await pool.query(
+        "SELECT * FROM m_data WHERE room = $1",
+        [data.roomid]
+      );
+      const list = dataList.rows;
+      console.log(list);
+      res.json(list);
     }
   } catch (error) {
     console.error("Error verifying JWT token:", error);

@@ -42,12 +42,12 @@ io.on("connection", (socket) => {
     console.log(data);
     if (data.key === "vicky") {
       await pool.query(
-        "INSERT INTO M_data( room, author_num, authname, senttonum, message, time) VALUES ($1, $2, $3, $4, $5, $6)",
+        "INSERT INTO M_data( room, authname, author_n, sentt_num, message, time) VALUES ($1, $2, $3, $4, $5, $6)",
         [
           data.room,
-          data.author,
-          data.authName,
-          data.number,
+          data.authname,
+          data.author_n,
+          data.sentt_num,
           data.message,
           data.time,
         ]
@@ -56,6 +56,7 @@ io.on("connection", (socket) => {
   });
   socket.on("join_room", (data) => {
     socket.join(data.roomid);
+    console.log(`joined room with id ${data.roomid}`);
   });
   socket.on("disconnect", () => {
     console.log("User Disconnected", socket.id);

@@ -3,6 +3,7 @@ import io from "socket.io-client";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import sendImage from "./send.jfif";
+
 const socket = io.connect("http://localhost:5001");
 
 function Chat() {
@@ -10,13 +11,41 @@ function Chat() {
   const [popup, setPopup] = useState(false);
   const [cresData, setCresData] = useState();
   const [selectedContact, setSelectedContact] = useState(null);
-  const [msgD, setMsgD] = useState(null);
-  const [list, setList] = useState([]);
+  const [contactList, setContactList] = useState([]);
+  const [index, setIndex] = useState(null);
+
+  const moveToStart = () => {
+    if (index !== null) {
+      const [v] = contactList.splice(index, 1);
+      setContactList((prevList) => [v, ...prevList]);
+    }
+  };
 
   const join = (data) => {
     socket.emit("join_room", data);
+    setMessageList([]);
     setSelectedContact(data);
+    if (data) {
+      fetch("http://localhost:5001/auth/Chats", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          data: JSON.stringify(data),
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setMessageList(data);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    } else {
+      console.log("vickyerror");
+    }
   };
+
   const vicky = useFormik({
     initialValues: { message: "" },
     validationSchema: Yup.object({
@@ -27,18 +56,17 @@ function Chat() {
       if (vals !== "" && selectedContact) {
         const messageData = {
           room: selectedContact.roomid,
-          author: cresData.phone_N,
-          authName: cresData.owner,
-          number: selectedContact.c_phonenum,
+          author_n: cresData.phone_N,
+          authname: cresData.owner,
+          sentt_num: selectedContact.c_phonenum,
           message: vals,
           key: "vicky",
           time: new Date().toLocaleTimeString(),
         };
-        setMsgD(messageData);
         await socket.emit("send_message", messageData);
         actions.resetForm();
         setMessageList((list) => [...list, messageData]);
-        console.log(messageList);
+        moveToStart();
       }
     },
   });
@@ -67,7 +95,8 @@ function Chat() {
         .then((res) => res.json())
         .then((data) => {
           if (data) {
-            setList((list) => [data, ...list]);
+            setContactList((prevList) => [data, ...prevList]);
+            setIndex(0);
           }
           formik.resetForm();
           togglePopup();
@@ -89,7 +118,7 @@ function Chat() {
       .then((res) => res.json())
       .then((data) => {
         setCresData(data.v);
-        setList(data.list);
+        setContactList(data.list);
       })
       .catch((err) => {
         console.error(err);
@@ -97,9 +126,9 @@ function Chat() {
   }, []);
 
   useEffect(() => {
-    const receiveMessageHandler = async (data) => {
-      console.log(data);
-      await setMessageList((list) => [...list, data]);
+    const receiveMessageHandler = (data) => {
+      setMessageList((list) => [...list, data]);
+      moveToStart();
     };
 
     socket.on("receive_message", receiveMessageHandler);
@@ -108,14 +137,16 @@ function Chat() {
       socket.off("receive_message", receiveMessageHandler);
     };
   }, [socket]);
+
   const togglePopup = () => {
     setPopup(!popup);
   };
+
   return (
     <div className="chatPage">
       <div className="container">
         <button className="Create" onClick={togglePopup}>
-          Create New Contact
+          CREATE
         </button>
         {popup && (
           <div className="contactCreateDiv">
@@ -139,88 +170,102 @@ function Chat() {
             </div>
           </div>
         )}
+
         <div className="contacts" onClick={popup ? togglePopup : undefined}>
-          {list.map((data, index) => (
-            <div key={index} className="contact" onClick={() => join(data)}>
-              <p>{data.c_name}</p>
+          {contactList.map((contact, index) => (
+            <div
+              key={index}
+              className="contact"
+              onClick={() => {
+                setIndex(index);
+                setSelectedContact(contact);
+                join(contact);
+              }}
+            >
+              <p>{contact.c_name}</p>
             </div>
           ))}
         </div>
       </div>
       <div className="chatdiv">
         <div className="chat-header">
-          {selectedContact ? (
-            <p>{`${cresData.owner} - Live Chat --- ${selectedContact.c_name}`}</p>
-          ) : (
-            <p>*****LIVE CHAT*****</p>
-          )}
+          <h1 className="H1">CLive</h1>
         </div>
-        <div className="chat-body">
-          {messageList.map((messageContent, index) => (
-            <div
-              key={index}
-              className="message"
-              id={
-                selectedContact && cresData.phone_N === messageContent.author
-                  ? "you"
-                  : "other"
-              }
-            >
+        {messageList.length !== 0 && (
+          <div className="chat-body">
+            {messageList.map((messageContent, index) => (
               <div
-                className="msgdiv"
+                key={index}
+                className="message"
                 id={
-                  selectedContact && cresData.phone_N === messageContent.author
+                  selectedContact &&
+                  cresData.phone_N === messageContent.author_n
                     ? "you"
                     : "other"
                 }
               >
                 <div
-                  className="msg"
+                  className="msgdiv"
                   id={
                     selectedContact &&
-                    cresData.phone_N === messageContent.author
+                    cresData.phone_N === messageContent.author_n
                       ? "you"
                       : "other"
                   }
                 >
-                  <div className="message-content">
-                    <div>{messageContent.message}</div>
-                  </div>
-                  <div className="message-meta">
-                    <div>{messageContent.time}</div>
-                    <div>{messageContent.authName}</div>
+                  <div
+                    className="msg"
+                    id={
+                      selectedContact &&
+                      cresData.phone_N === messageContent.author_n
+                        ? "you"
+                        : "other"
+                    }
+                  >
+                    <div className="message-content">
+                      <div>{messageContent.message}</div>
+                    </div>
+                    <div className="message-meta">
+                      <div>{messageContent.time}</div>
+                      <div>{messageContent.authname}</div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <div className="chat-footer">
-          <form onSubmit={vicky.handleSubmit}>
-            <input
-              className="Minput"
-              name="message"
-              placeholder="Type a message..."
-              type="text"
-              {...vicky.getFieldProps("message")}
-              onKeyPress={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault(); // Prevent default form submission on Enter
-                  vicky.handleSubmit();
-                }
-              }}
-            />
-            <div className="SimgDiv">
-              <img
-                className="Simg"
-                type="submit"
-                src={sendImage}
-                alt="Send"
-                onClick={vicky.handleSubmit}
+            ))}
+          </div>
+        )}
+        {selectedContact && (
+          <div
+            className="chat-footer"
+            onClick={popup ? togglePopup : undefined}
+          >
+            <form onSubmit={vicky.handleSubmit}>
+              <input
+                className="Minput"
+                name="message"
+                placeholder="Type a message..."
+                type="text"
+                {...vicky.getFieldProps("message")}
+                onKeyPress={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault(); // Prevent default form submission on Enter
+                    vicky.handleSubmit();
+                  }
+                }}
               />
-            </div>
-          </form>
-        </div>
+              <div className="SimgDiv">
+                <img
+                  className="Simg"
+                  type="submit"
+                  src={sendImage}
+                  alt="Send"
+                  onClick={vicky.handleSubmit}
+                />
+              </div>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );
