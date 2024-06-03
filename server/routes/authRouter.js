@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Signvalidate, Logvalidate } = require("../controllers/validateform");
+const { Signvalidate, Logvalidate } = require("./controllers/validateform");
 const pool = require("../dataBase");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
