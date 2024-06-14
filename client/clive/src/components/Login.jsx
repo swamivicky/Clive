@@ -24,7 +24,7 @@ function Login() {
       formik.handleReset();
       console.log(vals);
       // Adjust the URL to the correct endpoint for user login
-      fetch("http://localhost:5001/auth/login", {
+      fetch("http://localhost:5001/login", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -37,7 +37,8 @@ function Login() {
         })
         .then((data) => {
           console.log(data);
-          if (data === 1) {
+          if (data.loged === 1) {
+            localStorage.setItem("Token", data.UToken);
             navigate("/clive");
           } else {
             setResponse(data);
