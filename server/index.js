@@ -1,3 +1,13 @@
+/*id | authname |  author_n  | sentt_num  |   message    |        date         |   time
+----+----------+------------+------------+--------------+---------------------+----------
+  1 | vickys   | 7338066234 | 7337886949 | hi           | 2024-06-14 00:00:00 | 19:48:15
+  2 | vickys   | 7338066234 | 7337886949 | helo         | 2024-06-14 00:00:00 | 19:59:47
+  3 | vickys   | 7338066234 | 7337886949 | vicky        | 2024-06-14 00:00:00 | 20:01:34
+  4 | vickys   | 7338066234 | 7337886949 | sflwkjefw    | 2024-06-14 00:00:00 | 20:01:36
+  5 | vickys   | 7338066234 | 7337886949 | fuck youh    | 2024-06-14 00:00:00 | 20:01:37
+  6 | vickyc   | 7337886949 | 7338066234 | hi           | 2024-06-14 00:00:00 | 20:13:18
+  7 | vickys   | 7338066234 | 7337886949 | fuck you     | 2024-06-14 00:00:00 | 20:13:49
+  8 | vickyc   | 7337886949 | 7338066234 | fuck you too | 2024-06-14 00:00 */
 const express = require("express");
 const http = require("http");
 const app = express();
@@ -7,7 +17,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const session = require("express-session");
 const cookieParser = require("cookie-parser"); // Import cookie-parser module
-const { Signvalidate, Logvalidate } = require("./controllers/validateform");
+const { Signvalidate, Logvalidate } = require("./validateforms");
 const pool = require("./dataBase");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -121,7 +131,7 @@ app.get("/Clive", async (req, res) => {
         console.log("Token is valid");
 
         const Owner = await pool.query(
-          "SELECT phonenumber,username,status FROM users WHERE phonenumber=$1",
+          "SELECT phonenumber,username,status,notifications FROM users WHERE phonenumber=$1",
           [verify.phonenumber]
         );
         const Auth = Owner.rows[0]; // This should directly contain the user data, not an array of rows
@@ -136,7 +146,11 @@ app.get("/Clive", async (req, res) => {
         const updatedList = Clist.rows.map((contact) => {
           if (Auth && contact.owner === Auth.phonenumber) {
             // Check if Auth is not undefined/null
-            return { ...contact, status: Auth.status };
+            return {
+              ...contact,
+              status: Auth.status,
+              notifications: Auth.notifications,
+            };
           } else {
             // If no matching owner is found in Auth, return the contact as is
             return contact;
@@ -187,7 +201,7 @@ app.post("/Create", async (req, res) => {
       [verify.phonenumber]
     );
     const newContactUserQuery = await pool.query(
-      "SELECT phonenumber, username,status FROM users WHERE phonenumber=$1",
+      "SELECT phonenumber, username,status,notifications FROM users WHERE phonenumber=$1",
       [req.body.PhoneNumber]
     );
     const existingContactsQuery = await pool.query(
@@ -219,6 +233,7 @@ app.post("/Create", async (req, res) => {
         c_phonenum: req.body.PhoneNumber,
         owner: verify.phonenumber,
         status: newContactUser.status,
+        Notifications: newContactUser.notifications,
       };
 
       await pool.query(
@@ -257,7 +272,7 @@ app.get("/Chats", async (req, res) => {
       console.log(data);
       const dataList = await pool.query(
         "SELECT id, authname, author_n, sentt_num, message, TO_CHAR(date, 'YYYY-MM-DD') AS date, time " +
-          "FROM m_data " +
+          "FROM messages " +
           "WHERE author_n = $1 AND sentt_num = $2 " +
           "ORDER BY id ASC",
         [data.owner, data.c_phonenum]
@@ -266,7 +281,7 @@ app.get("/Chats", async (req, res) => {
       // Query 2: Sort by id for reversed author_n and sentt_num
       const dataL = await pool.query(
         "SELECT id, authname, author_n, sentt_num, message, TO_CHAR(date, 'YYYY-MM-DD') AS date, time " +
-          "FROM m_data " +
+          "FROM messages " +
           "WHERE author_n = $1 AND sentt_num = $2 " +
           "ORDER BY id ASC",
         [data.c_phonenum, data.owner]
@@ -343,7 +358,7 @@ io.on("connection", async (socket) => {
     console.log(formattedDate); // "2024-06-13"
     if (data.key === "vicky") {
       await pool.query(
-        "INSERT INTO m_data( authname, author_n, sentt_num, message,date, time) VALUES ($1, $2, $3, $4, $5,$6)RETURNING *",
+        "INSERT INTO messages( authname, author_n, sentt_num, message,date, time) VALUES ($1, $2, $3, $4, $5,$6)RETURNING *",
         [
           data.authname,
           data.author_n,

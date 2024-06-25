@@ -16,7 +16,6 @@
     "express": "^4.19.2",
     "express-session": "^1.18.0",
     "helmet": "^7.1.0",
-<<<<<<< HEAD
     "jsonwebtoken": "^9.0.2",
     "moment": "^2.30.1",
     "nodemon": "^3.1.0",
@@ -24,12 +23,7 @@
     "socket.io": "^4.7.3",
     "yup": "^1.4.0"
   },
-  "keywords": [],
-  "description": ""
-=======
-    "nodemon": "^3.1.3",
-    "pg": "^8.11.5",
-    "socket.io": "^4.7.5"
-  }
->>>>>>> b3348b37d1d7a528511a8a08325a1ce40a03821f
+  "nodemon": "^3.1.3",
+  "pg": "^8.11.5",
+  "socket.io": "^4.7.5"
 }
